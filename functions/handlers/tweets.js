@@ -349,6 +349,13 @@ exports.deleteTweet = (req, res) => {
 							message: "Tweet deleted successfuly",
 						})
 					})
+					.catch(err => {
+						console.error(err.message)
+						return res.status(500).json({
+							success: false,
+							error: err.message,
+						})
+					})
 			}
 		})
 		.catch(err => {

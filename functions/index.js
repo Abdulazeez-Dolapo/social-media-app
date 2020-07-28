@@ -44,11 +44,13 @@ app.get("/user/get-details", verifyToken, getUserDetails)
 
 exports.api = functions.region("europe-west1").https.onRequest(app)
 
+// Databse Triggers
 // Create a notification when a user likes a tweet
 exports.createNotificationOnLike = functions
 	.region("europe-west1")
 	.firestore.document("likes/{id}")
 	.onCreate(newLikeDocumentSnapshot => {
+		console.log("newLikeDocumentSnapshot", newLikeDocumentSnapshot)
 		db.doc(`/tweets/${newLikeDocumentSnapshot.data().tweetId}`)
 			.get()
 			.then(doc => {
@@ -65,6 +67,22 @@ exports.createNotificationOnLike = functions
 						})
 				}
 			})
+			.then(() => {
+				return
+			})
+			.catch(err => {
+				console.error(err)
+				return
+			})
+	})
+
+// Delete a notification when a user unlikes a tweet
+exports.deleteNotificationOnUnlike = functions
+	.region("europe-west1")
+	.firestore.document("likes/{id}")
+	.onDelete(unlikeDocumentSnapshot => {
+		db.doc(`/notifications/${unlikeDocumentSnapshot.id}`)
+			.delete()
 			.then(() => {
 				return
 			})
