@@ -210,6 +210,26 @@ exports.getUserDetails = (req, res) => {
 			docs.forEach(doc => {
 				userData.likes.push(doc.data())
 			})
+
+			return db
+				.collection("notifications")
+				.where("recipient", "==", req.user.handle)
+				.orderBy("createdAt", "desc")
+				.get()
+		})
+		.then(docs => {
+			userData.notifications = []
+			docs.forEach(doc => {
+				userData.notifications.push({
+					recipient: doc.data().recipient,
+					sender: doc.data().sender,
+					type: doc.data().type,
+					read: doc.data().read,
+					tweetId: doc.data().tweetId,
+					createdAt: doc.data().createdAt,
+					id: doc.id,
+				})
+			})
 			return res.json({
 				success: true,
 				userData,
