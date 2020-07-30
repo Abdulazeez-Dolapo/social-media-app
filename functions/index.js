@@ -13,12 +13,16 @@ const {
 	unlikeTweet,
 	deleteTweet,
 } = require("./handlers/tweets")
+
+const { markAsRead } = require("./handlers/notifications")
+
 const {
 	signUp,
 	login,
 	uploadImage,
 	updateUserDetails,
 	getUserDetails,
+	getAuthenticatedUserDetails,
 } = require("./handlers/auth")
 
 const { db } = require("./util/admin")
@@ -35,12 +39,16 @@ app.post("/tweet/:id/like", verifyToken, likeTweet)
 app.post("/tweet/:id/unlike", verifyToken, unlikeTweet)
 app.delete("/tweet/:id", verifyToken, deleteTweet)
 
-// Auth routes
+// Notification routes
+app.delete("/notifications/mark-as-read", verifyToken, markAsRead)
+
+// User routes
 app.post("/signup", signUp)
 app.post("/login", login)
 app.post("/user/upload-image", verifyToken, uploadImage)
 app.post("/user/update-details", verifyToken, updateUserDetails)
-app.get("/user/get-details", verifyToken, getUserDetails)
+app.get("/user/get-details", verifyToken, getAuthenticatedUserDetails)
+app.get("/user/:handle", getUserDetails)
 
 exports.api = functions.region("europe-west1").https.onRequest(app)
 

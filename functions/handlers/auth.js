@@ -110,17 +110,10 @@ exports.login = (req, res) => {
 		})
 		.catch(err => {
 			console.error(err)
-			if (err.code === "auth/wrong-password") {
-				return res.status(403).json({
-					success: false,
-					error: "Email or password incorrect",
-				})
-			} else {
-				return res.status(500).json({
-					success: false,
-					error: err.message,
-				})
-			}
+			return res.status(403).json({
+				success: false,
+				error: "Email or password incorrect",
+			})
 		})
 }
 
@@ -188,11 +181,7 @@ exports.uploadImage = (req, res) => {
 	busboy.end(req.rawBody)
 }
 
-exports.getUserDetails = (req, res) => {
-	//get credentials and store it in an object
-	//get likes and store in an array
-	//return data
-
+exports.getAuthenticatedUserDetails = (req, res) => {
 	let userData = {}
 	db.doc(`/users/${req.user.handle}`)
 		.get()
@@ -258,6 +247,41 @@ exports.updateUserDetails = (req, res) => {
 		.catch(err => {
 			console.error(err)
 			return res.status(500).json({
+				success: false,
+				error: err.message,
+			})
+		})
+}
+
+exports.getUserDetails = (req, res) => {
+	let userData = {}
+	db.doc(`/users/${req.params.handle}`)
+		.get()
+		.then(doc => {
+			if (doc.exists) {
+				userData.user = doc.data()
+				return db
+					.collection("tweets")
+					.where("userHandle", "==", req.params.handle)
+					.orderBy("createdAt", "desc")
+					.get()
+			}
+		})
+		.then(docs => {
+			userData.tweets = []
+			docs.forEach(doc => {
+				const tweet = doc.data()
+				tweet.id = doc.id
+				userData.tweets.push(tweet)
+			})
+			return res.json({
+				success: true,
+				userData,
+			})
+		})
+		.catch(err => {
+			console.error(err)
+			res.status(500).json({
 				success: false,
 				error: err.message,
 			})
