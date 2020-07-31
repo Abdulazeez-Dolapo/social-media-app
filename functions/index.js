@@ -52,17 +52,22 @@ app.get("/user/:handle", getUserDetails)
 
 exports.api = functions.region("europe-west1").https.onRequest(app)
 
-// Databse Triggers
+// Database Triggers
 // Create a notification when a user likes a tweet
 exports.createNotificationOnLike = functions
 	.region("europe-west1")
 	.firestore.document("likes/{id}")
 	.onCreate(newLikeDocumentSnapshot => {
-		console.log("newLikeDocumentSnapshot", newLikeDocumentSnapshot)
-		db.doc(`/tweets/${newLikeDocumentSnapshot.data().tweetId}`)
+		// console.log("newLikeDocumentSnapshot", newLikeDocumentSnapshot)
+		return db
+			.doc(`/tweets/${newLikeDocumentSnapshot.data().tweetId}`)
 			.get()
 			.then(doc => {
-				if (doc.exists) {
+				if (
+					doc.exists &&
+					newLikeDocumentSnapshot.data().userHandle !==
+						doc.data().userHandle
+				) {
 					return db
 						.doc(`/notifications/${newLikeDocumentSnapshot.id}`)
 						.set({
@@ -75,12 +80,8 @@ exports.createNotificationOnLike = functions
 						})
 				}
 			})
-			.then(() => {
-				return
-			})
 			.catch(err => {
 				console.error(err)
-				return
 			})
 	})
 
@@ -89,14 +90,11 @@ exports.deleteNotificationOnUnlike = functions
 	.region("europe-west1")
 	.firestore.document("likes/{id}")
 	.onDelete(unlikeDocumentSnapshot => {
-		db.doc(`/notifications/${unlikeDocumentSnapshot.id}`)
+		return db
+			.doc(`/notifications/${unlikeDocumentSnapshot.id}`)
 			.delete()
-			.then(() => {
-				return
-			})
 			.catch(err => {
 				console.error(err)
-				return
 			})
 	})
 
@@ -105,10 +103,15 @@ exports.createNotificationOnComment = functions
 	.region("europe-west1")
 	.firestore.document("comments/{id}")
 	.onCreate(newCommentDocumentSnapshot => {
-		db.doc(`/tweets/${newCommentDocumentSnapshot.data().tweetId}`)
+		return db
+			.doc(`/tweets/${newCommentDocumentSnapshot.data().tweetId}`)
 			.get()
 			.then(doc => {
-				if (doc.exists) {
+				if (
+					doc.exists &&
+					newCommentDocumentSnapshot.data().userHandle !==
+						doc.data().userHandle
+				) {
 					return db
 						.doc(`/notifications/${newCommentDocumentSnapshot.id}`)
 						.set({
@@ -121,11 +124,38 @@ exports.createNotificationOnComment = functions
 						})
 				}
 			})
-			.then(() => {
-				return
-			})
 			.catch(err => {
 				console.error(err)
-				return
 			})
 	})
+
+// Update image url in tweets whenever a user changes his/her profile image
+exports.onProfilePictureChange = functions
+	.region("europe-west1")
+	.firestore.document("users/{id}")
+	.onUpdate(({ before, after }) => {
+		// Check if image has actually changed
+		if (before.data().imageUrl !== after.data().imageUrl) {
+			const batch = db.batch()
+			return db
+				.collection("tweets")
+				.where("userHandle", "==", before.data().handle)
+				.get()
+				.then(docs => {
+					docs.forEach(doc => {
+						const tweet = db.doc(`/tweets/${doc.id}`)
+						batch.update(tweet, { userImage: after.data().imageUrl })
+					})
+
+					return batch.commit()
+				})
+				.catch(err => {
+					console.error(err)
+				})
+		}
+	})
+
+// Delete notifications, likes and comments whenever a user deletes a tweet
+exports.onTweetDelete = functions
+	.region("europe-west1")
+	.firestore.document("tweets")

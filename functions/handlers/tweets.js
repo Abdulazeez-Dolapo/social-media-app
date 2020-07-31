@@ -1,12 +1,12 @@
 const { db } = require("../util/admin")
 
 exports.createTweet = (req, res) => {
-	if (req.method !== "POST") {
-		return res.status(400).json({
-			success: false,
-			message: "Method not allowed on this endpoint",
-		})
-	}
+	// if (req.method !== "POST") {
+	// 	return res.status(400).json({
+	// 		success: false,
+	// 		message: "Method not allowed on this endpoint",
+	// 	})
+	// }
 	const newTweet = {
 		userHandle: req.user.handle,
 		userImage: req.user.imageUrl,
@@ -105,7 +105,7 @@ exports.commentOnTweet = (req, res) => {
 	if (req.body.body.trim() == "") {
 		return res.status(400).json({
 			success: false,
-			error: "Comment must not be empty",
+			comment: "Comment must not be empty",
 		})
 	}
 
