@@ -152,10 +152,44 @@ exports.onProfilePictureChange = functions
 				.catch(err => {
 					console.error(err)
 				})
-		}
+		} else return true
 	})
 
 // Delete notifications, likes and comments whenever a user deletes a tweet
 exports.onTweetDelete = functions
 	.region("europe-west1")
-	.firestore.document("tweets")
+	.firestore.document("/tweets/{id}")
+	.onDelete((deletedTweetSnapshot, context) => {
+		const tweetId = context.params.id
+		const batch = db.batch()
+
+		return db
+			.collection("comments")
+			.where("tweetId", "==", tweetId)
+			.get()
+			.then(docs => {
+				docs.forEach(doc => {
+					// batch.delete(doc.ref)
+					batch.delete(db.doc(`/comments/${doc.id}`))
+				})
+				return db.collection("likes").where("tweetId", "==", tweetId).get()
+			})
+			.then(docs => {
+				docs.forEach(doc => {
+					batch.delete(db.doc(`/likes/${doc.id}`))
+				})
+				return db
+					.collection("notifications")
+					.where("tweetId", "==", tweetId)
+					.get()
+			})
+			.then(docs => {
+				docs.forEach(doc => {
+					batch.delete(db.doc(`/notifications/${doc.id}`))
+				})
+				return batch.commit()
+			})
+			.catch(err => {
+				console.error(err)
+			})
+	})
