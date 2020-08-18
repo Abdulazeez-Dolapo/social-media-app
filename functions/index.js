@@ -1,7 +1,9 @@
 const functions = require("firebase-functions")
-
+const cors = require("cors")
 const express = require("express")
+
 const app = express()
+app.use(cors())
 
 // Handlers
 const {

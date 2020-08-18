@@ -23,7 +23,7 @@ exports.signUp = (req, res) => {
 	if (!valid) {
 		return res.status(400).json({
 			success: false,
-			errors,
+			error: errors,
 		})
 	}
 
@@ -71,7 +71,7 @@ exports.signUp = (req, res) => {
 			if (err.code === "auth/email-already-in-use") {
 				return res.status(400).json({
 					success: false,
-					email: err.message,
+					general: err.message,
 				})
 			} else {
 				return res.status(500).json({
@@ -92,7 +92,7 @@ exports.login = (req, res) => {
 	if (!valid) {
 		return res.status(400).json({
 			success: false,
-			errors,
+			error: errors,
 		})
 	}
 
@@ -112,7 +112,7 @@ exports.login = (req, res) => {
 			console.error(err)
 			return res.status(403).json({
 				success: false,
-				error: "Email or password incorrect",
+				error: { general: "Email or password incorrect" },
 			})
 		})
 }
