@@ -35,7 +35,7 @@ exports.signUp = (req, res) => {
 			if (doc.exists) {
 				return res.status(400).json({
 					success: false,
-					handle: "This handle is taken. Please try another",
+					error: { handle: "This handle is taken. Please try another" },
 				})
 			} else {
 				return firebase
@@ -71,7 +71,7 @@ exports.signUp = (req, res) => {
 			if (err.code === "auth/email-already-in-use") {
 				return res.status(400).json({
 					success: false,
-					general: err.message,
+					error: { general: err.message },
 				})
 			} else {
 				return res.status(500).json({
@@ -190,7 +190,7 @@ exports.getAuthenticatedUserDetails = (req, res) => {
 				userData.credentials = doc.data()
 				return db
 					.collection("likes")
-					.where("handle", "==", req.user.handle)
+					.where("userHandle", "==", req.user.handle)
 					.get()
 			}
 		})
