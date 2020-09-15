@@ -23,7 +23,7 @@ exports.validateSignUpData = data => {
 
 	return {
 		errors,
-		valid: Object.keys(errors).length === 0 ? true : false,
+		valid: Object.keys(errors).length === 0,
 	}
 }
 
@@ -37,7 +37,7 @@ exports.validateLoginData = data => {
 
 	return {
 		errors,
-		valid: Object.keys(errors).length === 0 ? true : false,
+		valid: Object.keys(errors).length === 0,
 	}
 }
 
@@ -55,4 +55,17 @@ exports.validateBioData = data => {
 	}
 
 	return userDetails
+}
+
+exports.validateTweetData = data => {
+	let errors = {}
+
+	if (isEmpty(data.body)) errors.body = "Body must not be empty"
+	if (data.body.length > 128)
+		errors.length = "Body must not be more than 128 characters"
+
+	return {
+		errors,
+		valid: Object.keys(errors).length === 0,
+	}
 }

@@ -1,5 +1,7 @@
 const { db } = require("../util/admin")
 
+const { validateTweetData } = require("../util/validators")
+
 exports.createTweet = (req, res) => {
 	// if (req.method !== "POST") {
 	// 	return res.status(400).json({
@@ -7,6 +9,18 @@ exports.createTweet = (req, res) => {
 	// 		message: "Method not allowed on this endpoint",
 	// 	})
 	// }
+	const newTweetData = {
+		body: req.body.body,
+	}
+
+	const { valid, errors } = validateTweetData(newTweetData)
+	if (!valid) {
+		return res.status(400).json({
+			success: false,
+			error: errors,
+		})
+	}
+
 	const newTweet = {
 		userHandle: req.user.handle,
 		userImage: req.user.imageUrl,
