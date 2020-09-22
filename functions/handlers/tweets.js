@@ -119,7 +119,7 @@ exports.commentOnTweet = (req, res) => {
 	if (req.body.body.trim() == "") {
 		return res.status(400).json({
 			success: false,
-			comment: "Comment must not be empty",
+			error: { comment: "Comment must not be empty" },
 		})
 	}
 
