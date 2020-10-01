@@ -158,7 +158,18 @@ exports.commentOnTweet = (req, res) => {
 				.doc(`/tweets/${tweetData.id}`)
 				.update({ commentsCount: tweetData.commentsCount })
 		})
-
+		.then(() => {
+			// Create a notification for the owner of the tweet
+			const newNotification = {
+				tweetId: req.params.id,
+				sender: req.user.handle,
+				recipient: tweetData.userHandle,
+				read: false,
+				type: "comment",
+				createdAt: new Date().toISOString(),
+			}
+			return db.collection("notification").add(newNotification)
+		})
 		.then(() => {
 			res.json({
 				success: true,
@@ -219,18 +230,18 @@ exports.likeTweet = (req, res) => {
 					})
 					.then(() => {
 						// Create a notification for the owner of the tweet
-						return db.collection("notification").add({
+						const newNotification = {
 							tweetId: req.params.id,
 							sender: req.user.handle,
 							recipient: tweetData.userHandle,
 							read: false,
 							type: "like",
 							createdAt: new Date().toISOString(),
-						})
+						}
+						return db.collection("notification").add(newNotification)
 					})
-					.then(hel => {
+					.then(() => {
 						return res.json({
-							hel,
 							success: true,
 							message: "You have liked this tweet",
 							tweet: tweetData,
