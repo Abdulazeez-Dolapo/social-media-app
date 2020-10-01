@@ -404,6 +404,21 @@ exports.deleteTweet = (req, res) => {
 						return batch.commit()
 					})
 					.then(() => {
+						// delete notifications under a tweet
+						return db
+							.collection(`notifications`)
+							.where("tweetId", "==", req.params.id)
+							.get()
+					})
+					.then(docs => {
+						const batch = db.batch()
+						docs.forEach(doc => {
+							batch.delete(doc.ref)
+						})
+
+						return batch.commit()
+					})
+					.then(() => {
 						return res.json({
 							success: true,
 							message: "Tweet deleted successfuly",
