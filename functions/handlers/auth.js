@@ -149,6 +149,7 @@ exports.uploadImage = (req, res) => {
 	})
 
 	busboy.on("finish", () => {
+		let imageUrl
 		admin
 			.storage()
 			.bucket()
@@ -161,8 +162,23 @@ exports.uploadImage = (req, res) => {
 				},
 			})
 			.then(() => {
-				const imageUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageName}?alt=media`
+				imageUrl = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o/${imageName}?alt=media`
 				return db.doc(`/users/${req.user.handle}`).update({ imageUrl })
+			})
+			.then(() => {
+				return db
+					.collection("tweets")
+					.where("userHandle", "==", req.user.handle)
+					.get()
+					.then(docs => {
+						const batch = db.batch()
+						docs.forEach(doc => {
+							const tweet = db.doc(`/tweets/${doc.id}`)
+							batch.update(tweet, { userImage: imageUrl })
+						})
+
+						return batch.commit()
+					})
 			})
 			.then(() => {
 				return res.json({
