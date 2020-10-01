@@ -24,3 +24,25 @@ exports.markAsRead = (req, res) => {
 			})
 		})
 }
+
+exports.getUserNotifications = (req, res) => {
+	db.collection("notifications")
+		.where("recipient", "==", req.user.handle)
+		.orderBy("createdAt", "desc")
+		.get()
+		.then(data => {
+			let notifications = []
+			data.forEach(doc => {
+				notifications.push({
+					id: doc.id,
+					...doc.data(),
+				})
+			})
+			return res.json({
+				success: true,
+				message: "Notifications found",
+				notifications,
+			})
+		})
+		.catch(err => console.error(err))
+}
