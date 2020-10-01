@@ -42,7 +42,7 @@ app.post("/tweet/:id/unlike", verifyToken, unlikeTweet)
 app.delete("/tweet/:id", verifyToken, deleteTweet)
 
 // Notification routes
-app.delete("/notifications/mark-as-read", verifyToken, markAsRead)
+app.post("/notifications/mark-as-read", verifyToken, markAsRead)
 
 // User routes
 app.post("/signup", signUp)
