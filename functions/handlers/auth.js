@@ -184,6 +184,7 @@ exports.uploadImage = (req, res) => {
 				return res.json({
 					success: true,
 					message: "Image uploaded successfully",
+					imageUrl,
 				})
 			})
 			.catch(err => {
