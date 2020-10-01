@@ -168,7 +168,7 @@ exports.commentOnTweet = (req, res) => {
 				type: "comment",
 				createdAt: new Date().toISOString(),
 			}
-			return db.collection("notification").add(newNotification)
+			return db.collection("notifications").add(newNotification)
 		})
 		.then(() => {
 			res.json({
@@ -238,7 +238,7 @@ exports.likeTweet = (req, res) => {
 							type: "like",
 							createdAt: new Date().toISOString(),
 						}
-						return db.collection("notification").add(newNotification)
+						return db.collection("notifications").add(newNotification)
 					})
 					.then(() => {
 						return res.json({
@@ -269,6 +269,14 @@ exports.unlikeTweet = (req, res) => {
 		.collection(`likes`)
 		.where("userHandle", "==", req.user.handle)
 		.where("tweetId", "==", req.params.id)
+		.limit(1)
+
+	// Query for notification operations
+	const notificationQuery = db
+		.collection(`notifications`)
+		.where("sender", "==", req.user.handle)
+		.where("tweetId", "==", req.params.id)
+		.where("type", "==", "like")
 		.limit(1)
 
 	// Query for Tweet operations
@@ -306,6 +314,20 @@ exports.unlikeTweet = (req, res) => {
 						return tweetQuery.update({
 							likesCount: tweetData.likesCount,
 						})
+					})
+					.then(() => {
+						return notificationQuery.get()
+					})
+					.then(data => {
+						// Check if notification doesn't exist
+						if (data.empty) {
+							return res.status(400).json({
+								success: false,
+								error: "Oops!! Notification doesn't exist",
+							})
+						} else {
+							return db.doc(`/notifications/${data.docs[0].id}`).delete()
+						}
 					})
 					.then(() => {
 						return res.json({
