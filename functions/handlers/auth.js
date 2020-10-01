@@ -185,6 +185,7 @@ exports.uploadImage = (req, res) => {
 					success: true,
 					message: "Image uploaded successfully",
 					imageUrl,
+					userHandle: req.user.handle,
 				})
 			})
 			.catch(err => {
