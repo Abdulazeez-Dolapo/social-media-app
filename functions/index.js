@@ -16,7 +16,10 @@ const {
 	deleteTweet,
 } = require("./handlers/tweets")
 
-const { markAsRead, getUserNotifications } = require("./handlers/notifications")
+const {
+	markAsRead,
+	getNewUserNotifications,
+} = require("./handlers/notifications")
 
 const {
 	signUp,
@@ -43,7 +46,7 @@ app.delete("/tweet/:id", verifyToken, deleteTweet)
 
 // Notification routes
 app.post("/notifications/mark-as-read", verifyToken, markAsRead)
-app.get("/notifications", verifyToken, getUserNotifications)
+app.get("/notifications", verifyToken, getNewUserNotifications)
 
 // User routes
 app.post("/signup", signUp)
